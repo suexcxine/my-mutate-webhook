@@ -67,6 +67,10 @@ func Mutate(body []byte) ([]byte, error) {
 
 		p := patchEnvByAnnotation(pod)
 		resp.Patch, err = json.Marshal(p)
+		if err != nil {
+			return nil, err
+		}
+
 		resp.Result = &metav1.Status{
 			Status: "Success",
 		}
