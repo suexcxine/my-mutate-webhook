@@ -1,9 +1,9 @@
 # my-mutate-webhook
-Learn to use mutating admission webhook
-This webhook adds environment variables according to annotation,
+This webhook adds environment variables according to annotation
+
 e.g.
  com.xxx.add.env.HELLO: "WORLD"
-This will generate an `HELLO=WORLD` env var to all containers
+will inject an `HELLO=WORLD` env var to all containers
 
 ## Build webhook server binary
 ```
@@ -20,6 +20,8 @@ This will generate an `HELLO=WORLD` env var to all containers
 ```
 ✗ docker build --no-cache -t suexcxine/annotation-to-env:v1 .
 ✗ docker push suexcxine/annotation-to-env:v1
+Warning: This will push ssl credentials to docker.io, you could use a private registry,
+or place ssl credentials to a volume instead of docker image, involving some code change.
 ```
 
 ## Config caBundle
