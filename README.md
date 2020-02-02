@@ -20,9 +20,9 @@ will inject an `HELLO=WORLD` env var to all containers
 ```
 ✗ docker build --no-cache -t suexcxine/annotation-to-env:v1 .
 ✗ docker push suexcxine/annotation-to-env:v1
-Warning: This will push ssl credentials to docker.io, you could use a private registry,
-or place ssl credentials to a volume instead of docker image, involving some code change.
 ```
+**Warning:** This will push ssl credentials to docker.io, you could use a private registry,
+or place ssl credentials to a volume instead of docker image, involving some code change.
 
 ## Config caBundle
 Replace caBundle section in your MutatingWebhookConfiguration config in webhook.yaml with output from the following command
@@ -44,7 +44,7 @@ You can see environment variable HELLO with value WORLD has been injected:
 ✗ kubectl get po
 NAME                         READY   STATUS    RESTARTS   AGE
 my-mutate-5c99645667-95664   1/1     Running   0          4m6s
-sleep-5678f9bb47-57psc       2/2     Running   0          2m59s
+sleep-765c8fd8d8-fxkjp       2/2     Running   0          2m59s
 ✗ kubectl get pod sleep-765c8fd8d8-fxkjp -o yaml
 apiVersion: v1
 kind: Pod
