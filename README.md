@@ -1,5 +1,9 @@
 # my-mutate-webhook
 Learn to use mutating admission webhook
+This webhook adds environment variables according to annotation,
+e.g.
+ com.xxx.add.env.HELLO: "WORLD"
+This will generate an `HELLO=WORLD` env var to all containers
 
 ## Build webhook server binary
 ```
@@ -33,6 +37,7 @@ Replace caBundle section in your MutatingWebhookConfiguration config in webhook.
 ```
 
 ## Verify
+You can see environment variable HELLO with value WORLD has been added:
 ```
 ✗ kubectl get po
 ✗ kubectl get pod sleep-765c8fd8d8-fxkjp -o yaml
