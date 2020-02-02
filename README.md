@@ -37,32 +37,35 @@ Replace caBundle section in your MutatingWebhookConfiguration config in webhook.
 ```
 
 ## Verify
-You can see environment variable HELLO with value WORLD has been added:
+You can see environment variable HELLO with value WORLD has been injected:
 ```
 ✗ kubectl get po
+NAME                         READY   STATUS    RESTARTS   AGE
+my-mutate-5c99645667-95664   1/1     Running   0          4m6s
+sleep-5678f9bb47-57psc       2/2     Running   0          2m59s
 ✗ kubectl get pod sleep-765c8fd8d8-fxkjp -o yaml
 apiVersion: v1
 kind: Pod
 metadata:
   annotations:
     com.xxx.add.env.HELLO: WORLD
-  creationTimestamp: "2020-02-02T04:52:19Z"
-  generateName: sleep-765c8fd8d8-
+  creationTimestamp: "2020-02-02T07:39:19Z"
+  generateName: sleep-5678f9bb47-
   labels:
     app: sleep
-    pod-template-hash: 765c8fd8d8
-  name: sleep-765c8fd8d8-fxkjp
+    pod-template-hash: 5678f9bb47
+  name: sleep-5678f9bb47-57psc
   namespace: default
   ownerReferences:
   - apiVersion: apps/v1
     blockOwnerDeletion: true
     controller: true
     kind: ReplicaSet
-    name: sleep-765c8fd8d8
-    uid: ca9c2ab7-4577-11ea-9375-025000000001
-  resourceVersion: "1431305"
-  selfLink: /api/v1/namespaces/default/pods/sleep-765c8fd8d8-fxkjp
-  uid: caa7847c-4577-11ea-9375-025000000001
+    name: sleep-5678f9bb47
+    uid: 1f6442bd-458f-11ea-9375-025000000001
+  resourceVersion: "1443716"
+  selfLink: /api/v1/namespaces/default/pods/sleep-5678f9bb47-57psc
+  uid: 1f6b130d-458f-11ea-9375-025000000001
 spec:
   containers:
   - command:
@@ -73,6 +76,25 @@ spec:
       value: WORLD
     image: alpine
     imagePullPolicy: IfNotPresent
+    name: sleep
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-htfc2
+      readOnly: true
+  - command:
+    - /bin/sleep
+    - infinity
+    env:
+    - name: xxx
+      value: yyy
+    - name: HELLO
+      value: WORLD
+    image: alpine
+    imagePullPolicy: IfNotPresent
+    ...
 ```
 
 ## Reference

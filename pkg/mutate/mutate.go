@@ -22,17 +22,11 @@ type patchOperation struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
-func patchEnvByAnnotation(pod corev1.Pod) []patchOperation {
-	// TODO 考虑有多个 container 的情况
-	op := "add"
-	evs := make([]corev1.EnvVar, 0)
-	containers := pod.Spec.Containers
-	if containers != nil && len(containers) > 0 && containers[0].Env != nil {
-		op = "update"
-		evs = append(evs, containers[0].Env...)
-	}
+func patchEnvByAnnotation(pod corev1.Pod) (p []patchOperation) {
+	// parse annotations
 	meta := pod.ObjectMeta
 	annotations := meta.GetAnnotations()
+	evs := make([]corev1.EnvVar, 0)
 	for k, v := range annotations {
 		idx := strings.LastIndex(k, annoEnvPrefix)
 		if idx == -1 {
@@ -41,11 +35,21 @@ func patchEnvByAnnotation(pod corev1.Pod) []patchOperation {
 		ev := corev1.EnvVar{Name: k[idx+annoEnvPrefixLen:], Value: v}
 		evs = append(evs, ev)
 	}
-	return []patchOperation{{
-		Op:    op,
-		Path:  "/spec/containers/0/env",
-		Value: evs,
-	}}
+	// generate patch for every container
+	for i, v := range pod.Spec.Containers {
+		op := "add"
+		oldEvs := make([]corev1.EnvVar, 0)
+		if v.Env != nil {
+			op = "replace"
+			oldEvs = append(oldEvs, v.Env...)
+		}
+		p = append(p, patchOperation{
+			Op:    op,
+			Path:  fmt.Sprintf("/spec/containers/%d/env", i),
+			Value: append(oldEvs, evs...),
+		})
+	}
+	return p
 }
 
 // Mutate 设置AdmissionResponse

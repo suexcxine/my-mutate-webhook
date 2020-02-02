@@ -16,7 +16,10 @@ spec:
         image: alpine
         command: ["/bin/sleep","infinity"]
         imagePullPolicy: IfNotPresent
-        # env:
-        # - name: xxx
-        #   value: 'yyy'
-
+      - name: sleep2
+        image: alpine
+        command: ["/bin/sleep","infinity"]
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: xxx
+          value: yyy
