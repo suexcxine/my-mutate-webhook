@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sleep
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        com.xxx.add.env.HELLO: "WORLD"
+      labels:
+        app: sleep
+    spec:
+      containers:
+      - name: sleep
+        image: alpine
+        command: ["/bin/sleep","infinity"]
+        imagePullPolicy: IfNotPresent
+        # env:
+        # - name: xxx
+        #   value: 'yyy'
+

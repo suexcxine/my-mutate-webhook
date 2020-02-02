@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	v1beta1 "k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	annoEnvPrefix    = "com.xxx.add.env."
+	annoEnvPrefixLen = len(annoEnvPrefix)
 )
 
 type patchOperation struct {
@@ -16,26 +22,30 @@ type patchOperation struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
-func patchEnvByAnnotation(pod *corev1.Pod) patchOperation {
+func patchEnvByAnnotation(pod corev1.Pod) []patchOperation {
 	// TODO 考虑有多个 container 的情况
 	op := "add"
-	evs := make([]corev1.EnvVar, 10)
+	evs := make([]corev1.EnvVar, 0)
 	containers := pod.Spec.Containers
 	if containers != nil && len(containers) > 0 && containers[0].Env != nil {
 		op = "update"
-		copy(evs, containers[0].Env)
+		evs = append(evs, containers[0].Env...)
 	}
 	meta := pod.ObjectMeta
 	annotations := meta.GetAnnotations()
 	for k, v := range annotations {
-		ev := corev1.EnvVar{Name: k, Value: v}
+		idx := strings.LastIndex(k, annoEnvPrefix)
+		if idx == -1 {
+			continue
+		}
+		ev := corev1.EnvVar{Name: k[idx+annoEnvPrefixLen:], Value: v}
 		evs = append(evs, ev)
 	}
-	return patchOperation{
+	return []patchOperation{{
 		Op:    op,
 		Path:  "/spec/containers/0/env",
 		Value: evs,
-	}
+	}}
 }
 
 // Mutate 设置AdmissionResponse
@@ -48,7 +58,7 @@ func Mutate(body []byte) ([]byte, error) {
 	}
 
 	var err error
-	var pod *corev1.Pod
+	var pod corev1.Pod
 
 	responseBody := []byte{}
 	ar := admReview.Request

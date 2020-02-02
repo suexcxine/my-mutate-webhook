@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-mutate
+  labels:
+    app: my-mutate
+spec:
+  publishNotReadyAddresses: true
+  ports:
+    - port: 443
+      targetPort: 8443
+  selector:
+    app: my-mutate
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-mutate
+  labels:
+    app: my-mutate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-mutate
+  template:
+    metadata:
+      name: my-mutate
+      labels:
+        app: my-mutate
+    spec:
+      containers:
+        - name: mutator
+          image: suexcxine/annotation-to-env:v1
+          imagePullPolicy: Never
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 250m
+              memory: 64Mi
+
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: my-mutate
+  labels:
+    app: my-mutate
+webhooks:
+  - name: my-mutate.default.svc.cluster.local
+    clientConfig:
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01ERXhPVEF5TkRJeU1Wb1hEVE13TURFeE5qQXlOREl5TVZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSms5Ck8vQ3BDSW1naGRNblF4eGdDOHo2dnhMYWg4Uzkxd01DSTBxbGJjdEVLVkZ6ZFFLcUNaVFh0RnlYWm4zUDVwQUUKWHl0bmpLZVhDYWk2MGpGRlo3R2hVLzFEUCtRbHlQNEhRMGw0eU8xY09sL1FvSkx0L2I5ZUUrZnlPMk51RFpjUwp1cG8yUlR3TjdNZUlhSXk4Vkx4Z3JEVEV5ZmxnSDlqQUlZbnlFakhJb1VjV04xMGxudG56c0kxamZPcVdwQlQ1CkFBOE9udHM2cFVwRmNMNzRDZVBEZmxGSi8rSlRUMDMyaXhZQWNFRm5MU2luVDZkTnZ0d1RBbmx0SWNudWM1NDkKaG1kQlRqdGljVDdhREIzK1JNMzhQaDJxMW9acXZ6TFdxOEQvK0lNelpuTlNoMnpCUEgxa0l2V1B0YzN2VlJBdApHWUJMREErKzJKdE8reWFydk1NQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGeXlVWUlJWmtTNEpTSFFxQU5XdUlDcnpoWEYKaXN5aDZPOWMwcTh3R2lCU3pVY3NRM3VGeGVQOEkvOHhXa3BScURUcU1yczNXRktKbjRHQnB1d3owUHpNNEhMbwpBaVEzRXZIUWZhWGNuTjh1QVVmNysxV2tQU09rdkYrektlN05kSmNOMXNTYkVwNjRuSDl3WkFGejV1T3hza0pWClc3dnNNUVhUSmxiZHFjU2ROQzgveVI1dEx5WURiT2o2UXF1YnZaQmVSNmRzbDBaVVU1Wld4TCtZNWpvZjlnZGcKSEV4RXhjWXJKK0Y4TnBjRlFyZXVwVnhrbm9GV3hlOHRWSTRueUlVQXFBN0x6YzJxY2F6SjlCNGpzTE1Xajlxdwo3azBJZi9sdndOMnNmSGxnOHBEbm55KzIybmdwVWFaZHpKMHlzMEFVbTMvSVlSdzJsY21IUGRzakZJZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+      service:
+        name: my-mutate
+        namespace: default
+        path: "/mutate"
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchLabels:
+        my-mutate: enabled
